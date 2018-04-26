@@ -25,19 +25,19 @@ for review in corp:
 
 #vocabFeat = {k for (k, v) in sorted(vocabStat.items(), key=operator.itemgetter(1), reverse=True)}
 vocabFeat={i for i in vocabStat}
+
 vocabFeat.add('*BIAS')
 vocabFeat.add('*RLEN')
 
+reviewStat={}
 for review in corp:
-    vocab=set()
-    rmv=[]
-    for i in range(0,len(review)-1):
-        if review[i] in vocab:
-            rmv.append(review[i])
+    review[-1]=len(review)
+    reviewStat[review[0]]={}
+    for i in range(3,len(review)-1):
+        if review[i] in reviewStat[review[0]]:
+            reviewStat[review[0]][review[i]]=reviewStat[review[0]][review[i]]+1
         else:
-            vocab.add(review[i])
-    for item in rmv:
-        review.remove(item)
+            reviewStat[review[0]][review[i]]=1
 
 
 for word in vocabFeat:
@@ -49,26 +49,27 @@ for word in vocabFeat:
     featWeightA[word]['PN'] = 0
 MaxIterTF=35
 MaxIterPN=30
-thresh=10
+thresh=1
 
 # vanilla perceptron for T/F
 b = 0
 for iter in range(0, MaxIterTF):
     shuffle(corp)
     for review in corp:
+        rid=review[0]
         a = 0
         if review[1] == 'True':
             y=thresh
         else:
             y=-thresh
-        for i in range(3, len(review)):
-            if review[i] in vocabFeat:
-                a = a + featWeightV[review[i]]['TF']
+        for word in reviewStat[rid]:
+            if word in vocabFeat:
+                a = a + featWeightV[word]['TF']*reviewStat[rid][word]
         a = a + b
         if y * a <= 0:
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    featWeightV[review[i]]['TF'] = featWeightV[review[i]]['TF'] + y * 1
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    featWeightV[word]['TF'] = featWeightV[word]['TF'] + y * reviewStat[rid][word]
             b = b + y
 featWeightV['*BIAS']['TF'] = b
 
@@ -77,19 +78,20 @@ b = 0
 for iter in range(0, MaxIterPN):
     shuffle(corp)
     for review in corp:
+        rid=review[0]
         a = 0
         if review[2] == 'Pos':
             y=thresh
         else:
             y=-thresh
-        for i in range(3, len(review)):
-            if review[i] in vocabFeat:
-                a = a + featWeightV[review[i]]['PN']
+        for word in reviewStat[rid]:
+            if word in vocabFeat:
+                a = a + featWeightV[word]['PN']*reviewStat[rid][word]
         a = a + b
         if y * a <= 0:
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    featWeightV[review[i]]['PN'] = featWeightV[review[i]]['PN'] + y * 1
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    featWeightV[word]['PN'] = featWeightV[word]['PN'] + y * reviewStat[rid][word]
             b = b + y
 featWeightV['*BIAS']['PN'] = b
 
@@ -104,23 +106,24 @@ for word in vocabFeat:
 for iter in range(0, MaxIterTF):
     shuffle(corp)
     for review in corp:
+        rid=review[0]
         a = 0
         if review[1] == 'True':
             y=thresh
         else:
             y=-thresh
-        for i in range(3, len(review)):
-            if review[i] in vocabFeat:
-                a = a + featWeightA[review[i]]['TF']
+        for word in reviewStat[rid]:
+            if word in vocabFeat:
+                a = a + featWeightA[word]['TF']*reviewStat[rid][word]
         a = a + b
         if y * a <= 0:
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    featWeightA[review[i]]['TF'] = featWeightA[review[i]]['TF'] + y * 1
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    featWeightA[word]['TF'] = featWeightA[word]['TF'] + y * reviewStat[rid][word]
             b = b + y
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    u[review[i]] = u[review[i]] + y * 1 * c
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    u[word] = u[word] + y * reviewStat[rid][word] * c
             beta = beta + y * c
         c = c + 1
 
@@ -139,23 +142,24 @@ for word in vocabFeat:
 for iter in range(0, MaxIterPN):
     shuffle(corp)
     for review in corp:
+        rid=review[0]
         a = 0
         if review[2] == 'Pos':
             y=thresh
         else:
             y=-thresh
-        for i in range(3, len(review)):
-            if review[i] in vocabFeat:
-                a = a + featWeightA[review[i]]['PN']
+        for word in reviewStat[rid]:
+            if word in vocabFeat:
+                a = a + featWeightA[word]['PN']*reviewStat[rid][word]
         a = a + b
         if y * a <= 0:
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    featWeightA[review[i]]['PN'] = featWeightA[review[i]]['PN'] + y * 1
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    featWeightA[word]['PN'] = featWeightA[word]['PN'] + y * reviewStat[rid][word]
             b = b + y
-            for i in range(3, len(review)):
-                if review[i] in vocabFeat:
-                    u[review[i]] = u[review[i]] + y * 1 * c
+            for word in reviewStat[rid]:
+                if word in vocabFeat:
+                    u[word] = u[word] + y * reviewStat[rid][word] * c
             beta = beta + y * c
         c = c + 1
 

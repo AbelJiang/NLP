@@ -20,26 +20,26 @@ for review in input:
         if review[i].endswith(tuple(negSuffix)) and i + 1 < len(review):
             review[i + 1] = 'n_' + review[i + 1]
 
+reviewStat={}
 for review in input:
-    vocab=set()
-    rmv=[]
-    for i in review:
-        if i in vocab:
-            rmv.append(i)
+    review[-1]=len(review)
+    reviewStat[review[0]]={}
+    for i in range(3,len(review)-1):
+        if review[i] in reviewStat[review[0]]:
+            reviewStat[review[0]][review[i]]=reviewStat[review[0]][review[i]]+1
         else:
-            vocab.add(i)
-    for item in rmv:
-        review.remove(item)
+            reviewStat[review[0]][review[i]]=1
 
 output=''
 for review in input:
     output=output+review[0]+' '
+    rid=review[0]
     tf=0
     pn=0
-    for i in range(3, len(review)):
-        if review[i] in featWeight:
-            tf = tf + featWeight[review[i]]['TF']
-            pn = pn + featWeight[review[i]]['PN']
+    for word in reviewStat[rid]:
+        if word in featWeight:
+            tf = tf + featWeight[word]['TF']*reviewStat[rid][word]
+            pn = pn + featWeight[word]['PN']*reviewStat[rid][word]
     tf=tf+featWeight['*BIAS']['TF']
     pn=pn+featWeight['*BIAS']['PN']
     if tf>=0:
